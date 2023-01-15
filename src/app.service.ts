@@ -22,9 +22,17 @@ export class AppService {
   }
 
   async addProductToCart(addProductToCartDto) {
-    const cart: CartEntity = await this.cartRepository.findOne(
-      addProductToCartDto.cartId,
-    );
+    let cart: CartEntity;
+    try {
+      cart = await this.cartRepository.findOne(
+          addProductToCartDto.cartId,
+      );
+    } catch (error) {
+      cart = new CartEntity();
+      cart.id = addProductToCartDto.cartId;
+
+      await this.cartRepository.save(cart);
+    }
     const product: ProductEntity = await this.productRepository.findOne(
       addProductToCartDto.productId,
     );
