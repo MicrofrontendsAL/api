@@ -24,19 +24,28 @@ export class AppService {
   async addProductToCart(addProductToCartDto) {
     let cart: CartEntity;
     try {
-      cart = await this.cartRepository.findOne(
-          addProductToCartDto.cartId,
-      );
+      cart = await this.cartRepository.find({
+        where: {
+          id: addProductToCartDto.cartId
+      });
     } catch (error) {
       cart = new CartEntity();
       cart.id = addProductToCartDto.cartId;
 
       await this.cartRepository.save(cart);
     }
-    const product: ProductEntity = await this.productRepository.findOne(
-      addProductToCartDto.productId,
-    );
-    cart.products.push(product);
-    return this.cartRepository.save(cart);
+    const products: ProductEntity[] = await this.productRepository.find({
+        where: {
+            id: addProductToCartDto.productId,
+        }
+    });
+
+    console.log("Product : " , cart, " add to cart : ", products);
+    return await this.cartRepository.createQueryBuilder()
+        .where('id = :id', { id: cart.id })
+        .relation('products')
+        .of(cart)
+        .add(products);
+  }
   }
 }
